@@ -20,7 +20,7 @@ app.use(cors());
 const wsServer = new ws.Server({ noServer: true });
 wsServer.on("connection", (socket) => {
   socket.on("message", (message) => {
-    consumerExample(socket).catch((err) => {
+    consumeMessage(socket).catch((err) => {
       console.error(`Something went wrong:\n${err}`);
       process.exit(1);
     });
@@ -64,7 +64,7 @@ function createConsumer(config, onData) {
   });
 }
 
-async function consumerExample(socket) {
+async function consumeMessage(socket) {
   // getting the config from the below file
   let configPath = "getting-started.properties";
   const config = await configFromPath(configPath);
