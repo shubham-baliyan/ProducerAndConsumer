@@ -6,10 +6,17 @@ const bodyParser = require("body-parser");
 const ws = require("ws");
 
 const { configFromPath } = require("./util");
+//initializing the expres server
+
 const app = express();
+//parsing the content of the body
+
 app.use(bodyParser.json());
+// allow cross origin requests
+
 app.use(cors());
 
+//making it a websocket server
 const wsServer = new ws.Server({ noServer: true });
 wsServer.on("connection", (socket) => {
   socket.on("message", (message) => {
@@ -20,7 +27,7 @@ wsServer.on("connection", (socket) => {
   });
 });
 
-//base route
+//base route to tell server is working
 app.get("/", (req, res) => {
   res.send("hello");
 });
@@ -45,7 +52,7 @@ function createConfigMap(config) {
 }
 
 function createConsumer(config, onData) {
-  //kafka client
+  // using the node-rdkafka library
   const consumer = new Kafka.KafkaConsumer(createConfigMap(config), {
     "auto.offset.reset": "earliest",
   });
@@ -62,12 +69,12 @@ async function consumerExample(socket) {
   let configPath = "getting-started.properties";
   const config = await configFromPath(configPath);
 
-  //let seen = 0;
   // topic is set by default
-  let topic = "purchase";
+  let topic = "fabric";
 
   const consumer = await createConsumer(config, ({ key, value }) => {
     let k = key.toString().padEnd(10, " ");
+    //sending the messages using sockets
     socket.send(
       JSON.stringify({
         topic: `${topic}`,
