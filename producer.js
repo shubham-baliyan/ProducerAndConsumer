@@ -3,20 +3,26 @@ const cors = require("cors");
 const express = require("express");
 const bodyParser = require("body-parser");
 const { configFromPath } = require("./util");
+
+//initializing the expres server
 const app = express();
+//parsing the content of the body
 app.use(bodyParser.json());
+// allow cross origin requests
 app.use(cors());
 
+// base route telling server is running
 app.get("/", (req, res) => {
   res.json("Successful response.");
 });
+//to produce the message to the kafka
 app.post("/", (req, res) => {
-  produceExample(req.body).catch((err) => {
+  produceMessage(req.body).catch((err) => {
     console.error(`Something went wrong:\n${err}`);
   });
   res.status(200).json("Success");
 });
-
+// creating the config
 function createConfigMap(config) {
   if (config.hasOwnProperty("security.protocol")) {
     return {
@@ -35,7 +41,8 @@ function createConfigMap(config) {
   }
 }
 
-function createProducer(config, onDeliveryReport) {
+const createProducer = (config, onDeliveryReport) => {
+  // using the node-rdkafka library
   const producer = new Kafka.Producer(createConfigMap(config));
 
   return new Promise((resolve, reject) => {
@@ -48,13 +55,15 @@ function createProducer(config, onDeliveryReport) {
       });
     producer.connect();
   });
-}
+};
 
-async function produceExample(data) {
+async function produceMessage(data) {
   let configPath = "getting-started.properties";
+  //getting the SASL
   const config = await configFromPath(configPath);
 
-  let topic = "purchase";
+  // topic is default
+  let topic = "fabric";
 
   const producer = await createProducer(config, (err, report) => {
     if (err) {
@@ -63,7 +72,7 @@ async function produceExample(data) {
       const { topic, key, value } = report;
       let k = key.toString().padEnd(10, " ");
       console.log(
-        `Produced event to topic ${topic}: key = ${k} value = ${value}`
+        `Produced message to the topic ${topic}:key=${k} value=${value}`
       );
     }
   });
@@ -80,5 +89,5 @@ async function produceExample(data) {
     producer.disconnect();
   });
 }
-
+// express server listening on port 3000
 app.listen(3000, () => console.log("Producer server running on the port 3000"));
