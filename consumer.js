@@ -108,7 +108,7 @@ const server = app.listen(3001, () =>
 
 //websocket
 server.on("upgrade", (req, ws, h) => {
-  wsServer.handleUpgrade(res, ws, h, (ws) => {
-    wsServer.emit("connection", ws, res);
+  wsServer.handleUpgrade(req, ws, h, (ws) => {
+    wsServer.emit("connection", ws, req);
   });
 });
